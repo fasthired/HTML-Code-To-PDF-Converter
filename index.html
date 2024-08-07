@@ -9,32 +9,41 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             background-color: #e9ecef;
         }
 
         .container {
-            text-align: center;
-            max-width: 1000px;
             width: 100%;
+            max-width: 1000px;
             background: #ffffff;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px auto;
+        }
+
+        .preview {
+            width: 100%;
+            max-width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            background: #ffffff;
+            padding: 2mm; /* 2mm all sides for very small margin */
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            overflow: auto;
         }
 
         h1 {
             margin-bottom: 20px;
             font-size: 24px;
             color: #333;
+            text-align: center;
         }
 
         textarea {
             width: 100%;
-            height: 300px;
+            height: 200px;
             margin: 20px 0;
             padding: 15px;
             font-size: 16px;
@@ -97,7 +106,7 @@
 
         @media (max-width: 768px) {
             textarea {
-                height: 200px;
+                height: 150px;
             }
 
             button, #downloadButton {
@@ -113,6 +122,7 @@
         <textarea id="htmlInput" placeholder="Enter your HTML code here"></textarea>
         <button id="convertButton">Convert to PDF</button>
         <div id="status"></div>
+        <div class="preview" id="preview"></div>
         <a id="downloadButton" href="#" download="document.pdf">Download PDF</a>
         <div id="progressContainer">
             <div id="progressBar"></div>
@@ -127,6 +137,9 @@
                 alert('Please enter HTML content.');
                 return;
             }
+
+            const previewElement = document.getElementById('preview');
+            previewElement.innerHTML = htmlContent;
 
             const statusElement = document.getElementById('status');
             const downloadButton = document.getElementById('downloadButton');
@@ -148,26 +161,22 @@
                 }
             }, 100);
 
-            const element = document.createElement('div');
-            element.innerHTML = htmlContent;
-            document.body.appendChild(element);
-
             const options = {
-                margin: [0.5, 0.5],
+                margin: [2, 2, 2, 2], // 2mm margin around each page
                 filename: 'document.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } // A4 format with millimeter unit
             };
 
-            html2pdf().from(element).set(options).toPdf().then(pdf => {
+            html2pdf().from(previewElement).set(options).toPdf().get('pdf').then((pdf) => {
                 const pdfBlob = pdf.output('blob');
                 const pdfUrl = URL.createObjectURL(pdfBlob);
                 downloadButton.href = pdfUrl;
                 downloadButton.style.display = 'inline';
+                downloadButton.textContent = 'Download Complete';
                 statusElement.textContent = 'Conversion complete! You can now download the PDF.';
             }).finally(() => {
-                document.body.removeChild(element);
                 progressContainer.style.display = 'none';
             });
         });
