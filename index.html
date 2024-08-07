@@ -13,28 +13,46 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #f9f9f9;
         }
 
         .container {
             text-align: center;
             max-width: 800px;
             width: 100%;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
         textarea {
-            width: 80%;
+            width: 100%;
             height: 300px;
             margin: 20px 0;
             padding: 10px;
             font-size: 16px;
             box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
 
-        button {
+        button, #downloadButton {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        button {
+            background-color: #007bff;
+        }
+
+        #downloadButton {
+            background-color: #28a745;
+            display: none;
         }
 
         #status {
@@ -43,15 +61,21 @@
             color: #333;
         }
 
-        #downloadButton {
+        #progressContainer {
             display: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #0056b3;
-            color: #fff;
-            border: none;
+            width: 100%;
+            height: 10px;
+            background: #ddd;
             border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        #progressBar {
+            height: 100%;
+            background: #007bff;
+            width: 0%;
+            transition: width 0.2s ease;
         }
     </style>
 </head>
@@ -62,6 +86,9 @@
         <button id="convertButton">Convert to PDF</button>
         <div id="status"></div>
         <a id="downloadButton" href="#" download="document.pdf">Download PDF</a>
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
@@ -75,8 +102,23 @@
 
             const statusElement = document.getElementById('status');
             const downloadButton = document.getElementById('downloadButton');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
 
             statusElement.textContent = 'Converting to PDF, please wait...';
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            // Simulated progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (progress < 100) {
+                    progress += 2; // Adjust the increment for faster/slower progress
+                    progressBar.style.width = `${progress}%`;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 100);
 
             const element = document.createElement('div');
             element.innerHTML = htmlContent;
@@ -90,11 +132,7 @@
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().from(element).set(options).toPdf().get('pdf').then(pdf => {
-                // Ensure the document fits well on A4 pages and handles multiple pages
-                pdf.internal.pageSize.height = 297; // A4 height in mm
-                pdf.internal.pageSize.width = 210; // A4 width in mm
-
+            html2pdf().from(element).set(options).toPdf().then(pdf => {
                 // Create a Blob URL for the PDF
                 const pdfBlob = pdf.output('blob');
                 const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -103,6 +141,7 @@
                 statusElement.textContent = 'Conversion complete! You can now download the PDF.';
             }).finally(() => {
                 document.body.removeChild(element);
+                progressContainer.style.display = 'none';
             });
         });
     </script>
