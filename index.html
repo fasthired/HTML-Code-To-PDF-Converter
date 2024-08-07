@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<meta name="robots" content="noindex">
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -19,6 +18,8 @@
 
         .container {
             text-align: center;
+            max-width: 800px;
+            width: 100%;
         }
 
         textarea {
@@ -35,6 +36,23 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+        #status {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        #downloadButton {
+            display: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #0056b3;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -42,18 +60,30 @@
         <h1>HTML to PDF Converter</h1>
         <textarea id="htmlInput" placeholder="Enter your HTML code here"></textarea>
         <button id="convertButton">Convert to PDF</button>
+        <div id="status"></div>
+        <a id="downloadButton" href="#" download="document.pdf">Download PDF</a>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         document.getElementById('convertButton').addEventListener('click', () => {
             const htmlContent = document.getElementById('htmlInput').value;
-            
+
+            if (!htmlContent.trim()) {
+                alert('Please enter HTML content.');
+                return;
+            }
+
+            const statusElement = document.getElementById('status');
+            const downloadButton = document.getElementById('downloadButton');
+
+            statusElement.textContent = 'Converting to PDF, please wait...';
+
             const element = document.createElement('div');
             element.innerHTML = htmlContent;
             document.body.appendChild(element);
 
             const options = {
-                margin: [0, 1], // Top, Right, Bottom, Left margins
+                margin: [0.5, 0.5], // Top, Right, Bottom, Left margins in inches
                 filename: 'document.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
@@ -64,6 +94,13 @@
                 // Ensure the document fits well on A4 pages and handles multiple pages
                 pdf.internal.pageSize.height = 297; // A4 height in mm
                 pdf.internal.pageSize.width = 210; // A4 width in mm
+
+                // Create a Blob URL for the PDF
+                const pdfBlob = pdf.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                downloadButton.href = pdfUrl;
+                downloadButton.style.display = 'inline';
+                statusElement.textContent = 'Conversion complete! You can now download the PDF.';
             }).finally(() => {
                 document.body.removeChild(element);
             });
