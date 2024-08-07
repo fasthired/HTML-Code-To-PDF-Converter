@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<meta name="robots" content="noindex">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to PDF Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        textarea {
+            width: 80%;
+            height: 300px;
+            margin: 20px 0;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML to PDF Converter</h1>
+        <textarea id="htmlInput" placeholder="Enter your HTML code here"></textarea>
+        <button id="convertButton">Convert to PDF</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.getElementById('convertButton').addEventListener('click', () => {
+            const htmlContent = document.getElementById('htmlInput').value;
+            
+            const element = document.createElement('div');
+            element.innerHTML = htmlContent;
+            document.body.appendChild(element);
+
+            const options = {
+                margin: [0, 1], // Top, Right, Bottom, Left margins
+                filename: 'document.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(options).toPdf().get('pdf').then(pdf => {
+                // Ensure the document fits well on A4 pages and handles multiple pages
+                pdf.internal.pageSize.height = 297; // A4 height in mm
+                pdf.internal.pageSize.width = 210; // A4 width in mm
+            }).finally(() => {
+                document.body.removeChild(element);
+            });
+        });
+    </script>
+</body>
+</html>
